@@ -1,0 +1,65 @@
+### ---- Build Artifacts ----
+*.class
+*.jar
+*.war
+*.ear
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+### ---- IDE ----
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VSCode
+.vscode/
+
+# Eclipse
+.settings/
+.project
+.classpath
+.factorypath
+
+### ---- OS ----
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+### ---- Logs ----
+*.log
+logs/
+
+### ---- Secretos y Credenciales (MUY IMPORTANTE) ----
+# Archivos de variables de entorno locales - NUNCA subir
+.env
+.env.local
+.env.*.local
+*.env
+
+# Configs de aplicación con secretos reales (usar .yml para configs de ejemplo)
+application-prod.yml
+application-prod.properties
+application-local.yml
+application-local.properties
+**/src/main/resources/application-prod*
+**/src/main/resources/application-local*
+
+# Keystores y certificados con claves privadas
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+
+### ---- Docker ----
+# Override local de docker-compose (credenciales o configs locales)
+docker-compose.override.yml
+docker-compose.local.yml
+
+### ---- Maven ----
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar

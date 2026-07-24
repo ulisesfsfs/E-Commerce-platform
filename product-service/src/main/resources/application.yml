@@ -6,11 +6,15 @@ spring:
     name: product-service
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: product_db
+      uri: ${MONGODB_URI:mongodb://localhost:27017/product_db}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

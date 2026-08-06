@@ -108,6 +108,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public void reserveStock(String id, int quantity) {
+        Product product = getProductOrThrow(id);
+
+        if (!product.isActive()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Product '" + product.getName() + "' is no longer available");
+        }
+        if (product.getStock() < quantity) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Insufficient stock for product '" + product.getName()
+                    + "'. Requested: " + quantity + ", Available: " + product.getStock());
+        }
+
+        product.setStock(product.getStock() - quantity);
+        productRepository.save(product);
+    }
+
+    @Override
     public void updateStock(String id, int quantity) {
         Product product = getProductOrThrow(id);
         int newStock = product.getStock() + quantity;

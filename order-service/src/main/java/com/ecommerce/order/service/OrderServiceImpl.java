@@ -1,0 +1,182 @@
+package com.ecommerce.order.service;
+
+import com.ecommerce.order.client.CartClient;
+import com.ecommerce.order.client.ProductClient;
+import com.ecommerce.order.client.dto.CartClientResponse;
+import com.ecommerce.order.client.dto.CartItemClientResponse;
+import com.ecommerce.order.domain.Order;
+import com.ecommerce.order.domain.OrderItem;
+import com.ecommerce.order.domain.OrderStatus;
+import com.ecommerce.order.dto.CreateOrderRequest;
+import com.ecommerce.order.dto.OrderItemResponse;
+import com.ecommerce.order.dto.OrderResponse;
+import com.ecommerce.order.dto.PagedResponse;
+import com.ecommerce.order.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+    private final CartClient cartClient;
+    private final ProductClient productClient;
+
+    @Override
+    @Transactional
+    public OrderResponse createOrder(String userId, CreateOrderRequest request) {
+        // 1. Get the user's cart
+        CartClientResponse cart = fetchCartOrThrow(userId);
+
+        // 2. Validate and reserve stock in product-service
+        validateAndReserveStock(cart);
+
+        // 3. Build the order locally
+        Order order = buildOrder(userId, request.getShippingAddress(), cart);
+
+        // 4. Save the order in PostgreSQL
+        Order savedOrder = orderRepository.save(order);
+
+        // 5. Clear cart in cart-service
+        clearCartQuietly(userId);
+
+        return toResponse(savedOrder);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderById(Long orderId) {
+        Order order = getOrderOrThrow(orderId);
+        return toResponse(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<OrderResponse> getUserOrders(String userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Order> ordersPage = orderRepository.findByUserId(userId, pageable);
+        return toPagedResponse(ordersPage);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        Order order = getOrderOrThrow(orderId);
+
+        // If the order is cancelled, restore stock in product-service
+        if (newStatus == OrderStatus.CANCELLED && order.getStatus() != OrderStatus.CANCELLED) {
+            for (OrderItem item : order.getItems()) {
+                productClient.restoreStock(item.getProductId(), item.getQuantity());
+            }
+        }
+
+        order.setStatus(newStatus);
+        Order updatedOrder = orderRepository.save(order);
+        return toResponse(updatedOrder);
+    }
+
+    // ---- Orchestration Helpers ----
+
+    private CartClientResponse fetchCartOrThrow(String userId) {
+        CartClientResponse cart = cartClient.getCart(userId);
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot place an order with an empty cart");
+        }
+        return cart;
+    }
+
+    private void validateAndReserveStock(CartClientResponse cart) {
+        // product-service is the owner of the business rule: validates AND discounts in
+        // a single call.
+        // If the stock is insufficient or the product is inactive, Feign propagates the
+        // 400 directly.
+        for (CartItemClientResponse item : cart.getItems()) {
+            productClient.reserveStock(item.getProductId(), item.getQuantity());
+        }
+    }
+
+    private Order buildOrder(String userId, String shippingAddress, CartClientResponse cart) {
+        Order order = Order.builder()
+                .userId(userId)
+                .shippingAddress(shippingAddress)
+                .status(OrderStatus.PENDING)
+                .totalAmount(cart.getTotalPrice())
+                .items(new ArrayList<>())
+                .build();
+
+        for (CartItemClientResponse cartItem : cart.getItems()) {
+            BigDecimal subtotal = cartItem.getUnitPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+
+            OrderItem orderItem = OrderItem.builder()
+                    .productId(cartItem.getProductId())
+                    .productName(cartItem.getProductName())
+                    .unitPrice(cartItem.getUnitPrice())
+                    .quantity(cartItem.getQuantity())
+                    .subtotal(subtotal)
+                    .build();
+
+            order.addItem(orderItem);
+        }
+        return order;
+    }
+
+    private void clearCartQuietly(String userId) {
+        try {
+            cartClient.clearCart(userId);
+        } catch (Exception e) {
+            log.error("Failed to clear cart for user: {}. Order was placed successfully.", userId, e);
+        }
+    }
+
+    private Order getOrderOrThrow(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Order with id '" + orderId + "' not found"));
+    }
+
+    private OrderResponse toResponse(Order order) {
+        return OrderResponse.builder()
+                .id(order.getId())
+                .userId(order.getUserId())
+                .shippingAddress(order.getShippingAddress())
+                .status(order.getStatus())
+                .totalAmount(order.getTotalAmount())
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
+                .items(order.getItems().stream()
+                        .map(item -> OrderItemResponse.builder()
+                                .id(item.getId())
+                                .productId(item.getProductId())
+                                .productName(item.getProductName())
+                                .unitPrice(item.getUnitPrice())
+                                .quantity(item.getQuantity())
+                                .subtotal(item.getSubtotal())
+                                .build())
+                        .toList())
+                .build();
+    }
+
+    private PagedResponse<OrderResponse> toPagedResponse(Page<Order> page) {
+        return PagedResponse.<OrderResponse>builder()
+                .content(page.getContent().stream().map(this::toResponse).toList())
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .last(page.isLast())
+                .build();
+    }
+}

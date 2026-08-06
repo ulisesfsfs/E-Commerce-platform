@@ -85,7 +85,17 @@ public class ProductController {
         return ResponseEntity.ok(productService.update(id, request));
     }
 
-    // PATCH /api/products/{id}/stock?quantity=-5  (negativo = reducir, positivo = agregar)
+    // POST /api/products/{id}/reserve?quantity=2
+    // Llamado por order-service al hacer checkout — valida y descuenta en una sola operación
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<Void> reserveStock(
+            @PathVariable String id,
+            @RequestParam int quantity) {
+        productService.reserveStock(id, quantity);
+        return ResponseEntity.noContent().build();
+    }
+
+    // PATCH /api/products/{id}/stock?quantity=-5  (negativo = reducir, positivo = agregar) - uso admin
     @PatchMapping("/{id}/stock")
     public ResponseEntity<Void> updateStock(
             @PathVariable String id,

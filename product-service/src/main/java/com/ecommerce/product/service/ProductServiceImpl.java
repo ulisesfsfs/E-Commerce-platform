@@ -94,7 +94,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse update(String id, UpdateProductRequest request) {
         Product product = getProductOrThrow(id);
 
-        // Solo actualiza los campos que vienen en el request (patrón PATCH)
+        // Only update fields present in request (PATCH pattern)
         if (request.getName() != null)        product.setName(request.getName());
         if (request.getDescription() != null) product.setDescription(request.getDescription());
         if (request.getPrice() != null)       product.setPrice(request.getPrice());

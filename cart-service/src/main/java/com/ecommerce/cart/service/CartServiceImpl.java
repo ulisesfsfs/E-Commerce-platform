@@ -43,7 +43,7 @@ public class CartServiceImpl implements CartService {
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + request.getQuantity());
-            item.setUnitPrice(request.getUnitPrice()); // actualizar precio por si cambió
+            item.setUnitPrice(request.getUnitPrice()); // update unit price in case it changed
         } else {
             CartItem newItem = CartItem.builder()
                     .productId(request.getProductId())

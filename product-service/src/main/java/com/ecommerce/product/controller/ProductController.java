@@ -86,7 +86,7 @@ public class ProductController {
     }
 
     // POST /api/products/{id}/reserve?quantity=2
-    // Llamado por order-service al hacer checkout — valida y descuenta en una sola operación
+    // Called when checking out order — validates and decrements in single operation
     @PostMapping("/{id}/reserve")
     public ResponseEntity<Void> reserveStock(
             @PathVariable String id,
@@ -95,7 +95,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    // PATCH /api/products/{id}/stock?quantity=-5  (negativo = reducir, positivo = agregar) - uso admin
+    // PATCH /api/products/{id}/stock?quantity=-5  (negative = decrease, positive = increase) - admin usage
     @PatchMapping("/{id}/stock")
     public ResponseEntity<Void> updateStock(
             @PathVariable String id,

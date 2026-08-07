@@ -28,13 +28,13 @@ public interface ProductService {
     ProductResponse update(String id, UpdateProductRequest request);
 
     /**
-     * Valida que haya stock suficiente y lo descuenta atomicamente.
-     * Lanza 400 si el stock es insuficiente.
-     * Solo debe llamarlo el order-service al hacer checkout.
+     * Validates that sufficient stock exists and decrements it atomically.
+     * Throws 400 if stock is insufficient.
+     * Called when processing order checkout events.
      */
     void reserveStock(String id, int quantity);
 
-    void updateStock(String id, int quantity);  // ajuste manual de stock (admin)
+    void updateStock(String id, int quantity);  // manual stock adjustment (admin)
 
     void delete(String id);  // soft delete (active = false)
 }

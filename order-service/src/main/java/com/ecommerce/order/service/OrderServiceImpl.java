@@ -1,7 +1,6 @@
 package com.ecommerce.order.service;
 
 import com.ecommerce.order.client.CartClient;
-import com.ecommerce.order.client.ProductClient;
 import com.ecommerce.order.client.dto.CartClientResponse;
 import com.ecommerce.order.client.dto.CartItemClientResponse;
 import com.ecommerce.order.domain.Order;
@@ -33,27 +32,48 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final CartClient cartClient;
-    private final ProductClient productClient;
+    private final com.ecommerce.order.kafka.OrderKafkaProducer orderKafkaProducer;
 
     @Override
     @Transactional
     public OrderResponse createOrder(String userId, CreateOrderRequest request) {
-        // 1. Get the user's cart
+        // 1. Fetch user's cart from cart-service
         CartClientResponse cart = fetchCartOrThrow(userId);
 
-        // 2. Validate and reserve stock in product-service
-        validateAndReserveStock(cart);
-
-        // 3. Build the order locally
+        // 2. Build order locally in PENDING state
         Order order = buildOrder(userId, request.getShippingAddress(), cart);
 
-        // 4. Save the order in PostgreSQL
+        // 3. Save order in PostgreSQL (order_db)
         Order savedOrder = orderRepository.save(order);
+
+        // 4. Publish OrderCreatedEvent to Kafka (decoupled from product-service)
+        publishOrderCreatedEvent(savedOrder);
 
         // 5. Clear cart in cart-service
         clearCartQuietly(userId);
 
         return toResponse(savedOrder);
+    }
+
+    private void publishOrderCreatedEvent(Order order) {
+        var itemEvents = order.getItems().stream()
+                .map(item -> com.ecommerce.order.event.OrderCreatedEvent.OrderItemEvent.builder()
+                        .productId(item.getProductId())
+                        .productName(item.getProductName())
+                        .quantity(item.getQuantity())
+                        .unitPrice(item.getUnitPrice())
+                        .build())
+                .toList();
+
+        com.ecommerce.order.event.OrderCreatedEvent event = com.ecommerce.order.event.OrderCreatedEvent.builder()
+                .orderId(order.getId())
+                .userId(order.getUserId())
+                .totalAmount(order.getTotalAmount())
+                .shippingAddress(order.getShippingAddress())
+                .items(itemEvents)
+                .build();
+
+        orderKafkaProducer.sendOrderCreatedEvent(event);
     }
 
     @Override
@@ -76,16 +96,30 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Order order = getOrderOrThrow(orderId);
 
-        // If the order is cancelled, restore stock in product-service
+        // If the order is cancelled, publish OrderCancelledEvent to Kafka so product-service restores stock asynchronously
         if (newStatus == OrderStatus.CANCELLED && order.getStatus() != OrderStatus.CANCELLED) {
-            for (OrderItem item : order.getItems()) {
-                productClient.restoreStock(item.getProductId(), item.getQuantity());
-            }
+            publishOrderCancelledEvent(order);
         }
 
         order.setStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
         return toResponse(updatedOrder);
+    }
+
+    private void publishOrderCancelledEvent(Order order) {
+        var itemEvents = order.getItems().stream()
+                .map(item -> com.ecommerce.order.event.OrderCancelledEvent.OrderItemEvent.builder()
+                        .productId(item.getProductId())
+                        .quantity(item.getQuantity())
+                        .build())
+                .toList();
+
+        com.ecommerce.order.event.OrderCancelledEvent event = com.ecommerce.order.event.OrderCancelledEvent.builder()
+                .orderId(order.getId())
+                .items(itemEvents)
+                .build();
+
+        orderKafkaProducer.sendOrderCancelledEvent(event);
     }
 
     // ---- Orchestration Helpers ----
@@ -98,15 +132,7 @@ public class OrderServiceImpl implements OrderService {
         return cart;
     }
 
-    private void validateAndReserveStock(CartClientResponse cart) {
-        // product-service is the owner of the business rule: validates AND discounts in
-        // a single call.
-        // If the stock is insufficient or the product is inactive, Feign propagates the
-        // 400 directly.
-        for (CartItemClientResponse item : cart.getItems()) {
-            productClient.reserveStock(item.getProductId(), item.getQuantity());
-        }
-    }
+
 
     private Order buildOrder(String userId, String shippingAddress, CartClientResponse cart) {
         Order order = Order.builder()

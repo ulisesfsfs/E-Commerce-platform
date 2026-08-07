@@ -137,7 +137,7 @@ class ProductServiceImplTest {
         ProductResponse response = productService.update("abc123", request);
 
         assertEquals(new BigDecimal("299000.00"), response.getPrice());
-        assertEquals("Notebook Pro", response.getName()); // nombre no cambia
+        assertEquals("Notebook Pro", response.getName()); // name unchanged
     }
 
     // --- STOCK ---
@@ -148,7 +148,7 @@ class ProductServiceImplTest {
         when(productRepository.findById("abc123")).thenReturn(Optional.of(product));
         when(productRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        productService.updateStock("abc123", 5); // agregar 5
+        productService.updateStock("abc123", 5); // add 5
 
         assertEquals(25, product.getStock());
     }
@@ -158,7 +158,7 @@ class ProductServiceImplTest {
         Product product = buildSampleProduct(); // stock = 20
         when(productRepository.findById("abc123")).thenReturn(Optional.of(product));
 
-        // Intentar reducir más del stock disponible
+        // Attempt to reduce more than available stock
         assertThrows(ResponseStatusException.class,
                 () -> productService.updateStock("abc123", -100));
     }
@@ -173,7 +173,7 @@ class ProductServiceImplTest {
 
         productService.delete("abc123");
 
-        assertFalse(product.isActive()); // debe quedar desactivado
+        assertFalse(product.isActive()); // must be deactivated
         verify(productRepository).save(product);
     }
 }

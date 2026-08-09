@@ -1,6 +1,8 @@
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 COPY notification-service/pom.xml notification-service/pom.xml
 COPY notification-service/src notification-service/src
 RUN --mount=type=cache,target=/root/.m2 \

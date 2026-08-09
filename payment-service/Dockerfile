@@ -1,6 +1,8 @@
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 COPY payment-service/pom.xml payment-service/pom.xml
 COPY payment-service/src payment-service/src
 RUN --mount=type=cache,target=/root/.m2 \

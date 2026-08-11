@@ -99,7 +99,7 @@ services:
       discovery-server:
         condition: service_healthy
     environment:
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
     networks:
       - ecommerce-net
 
@@ -113,7 +113,8 @@ services:
       discovery-server:
         condition: service_healthy
     environment:
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      JWT_SECRET: ${JWT_SECRET:-defaultSecretKeyForDevelopmentMustBeLongEnoughAndSecure}
     networks:
       - ecommerce-net
 
@@ -134,7 +135,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      JWT_SECRET: ${JWT_SECRET:-defaultSecretKeyForDevelopmentMustBeLongEnoughAndSecure}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
     networks:
       - ecommerce-net
 
@@ -154,7 +157,7 @@ services:
     environment:
       MONGODB_URI: mongodb://mongodb:27017/${MONGO_INITDB_DATABASE:-product_db}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
     networks:
       - ecommerce-net
 
@@ -171,7 +174,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_DATA_REDIS_HOST: redis
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
     networks:
       - ecommerce-net
 
@@ -193,7 +196,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
     networks:
       - ecommerce-net
 
@@ -215,7 +218,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
     networks:
       - ecommerce-net
 
@@ -234,7 +237,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
       MAIL_USERNAME: ${MAIL_USERNAME:-noreply@ecommerce.com}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      EUREKA_DEFAULT_ZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
     networks:
       - ecommerce-net
 

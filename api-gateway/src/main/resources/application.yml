@@ -41,6 +41,17 @@ spring:
           predicates:
             - Path=/api/notifications/**
 
+jwt:
+  secret: ${JWT_SECRET:defaultSecretKeyForDevelopmentMustBeLongEnoughAndSecure}
+
+gateway:
+  security:
+    public-paths:
+      - /api/users/auth/**
+      - /actuator/**
+    public-get-paths:
+      - /api/products/**
+
 eureka:
   client:
     service-url:

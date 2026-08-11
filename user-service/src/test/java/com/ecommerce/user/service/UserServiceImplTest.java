@@ -63,12 +63,14 @@ class UserServiceImplTest {
                 .build();
                 
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(jwtUtils.generateToken(savedUser.getEmail(), savedUser.getRoles())).thenReturn("mockJwtToken");
+        when(jwtUtils.generateToken(savedUser.getId(), savedUser.getEmail(), savedUser.getRoles()))
+                .thenReturn("mockJwtToken");
 
         AuthResponse response = userService.register(request);
 
         assertNotNull(response);
         assertEquals("mockJwtToken", response.getToken());
+        assertEquals(1L, response.getUserId());
         assertEquals("test@example.com", response.getEmail());
         assertTrue(response.getRoles().contains("ROLE_USER"));
         verify(userRepository).save(any(User.class));
@@ -101,12 +103,14 @@ class UserServiceImplTest {
 
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true);
-        when(jwtUtils.generateToken(user.getEmail(), user.getRoles())).thenReturn("mockJwtToken");
+        when(jwtUtils.generateToken(user.getId(), user.getEmail(), user.getRoles()))
+                .thenReturn("mockJwtToken");
 
         AuthResponse response = userService.login(request);
 
         assertNotNull(response);
         assertEquals("mockJwtToken", response.getToken());
+        assertEquals(1L, response.getUserId());
         assertEquals("test@example.com", response.getEmail());
     }
 

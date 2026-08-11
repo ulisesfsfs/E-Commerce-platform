@@ -40,10 +40,11 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        String token = jwtUtils.generateToken(savedUser.getEmail(), savedUser.getRoles());
+        String token = jwtUtils.generateToken(savedUser.getId(), savedUser.getEmail(), savedUser.getRoles());
 
         return AuthResponse.builder()
                 .token(token)
+                .userId(savedUser.getId())
                 .email(savedUser.getEmail())
                 .roles(savedUser.getRoles().stream().map(Role::name).collect(Collectors.toSet()))
                 .build();
@@ -58,10 +59,11 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
         }
 
-        String token = jwtUtils.generateToken(user.getEmail(), user.getRoles());
+        String token = jwtUtils.generateToken(user.getId(), user.getEmail(), user.getRoles());
 
         return AuthResponse.builder()
                 .token(token)
+                .userId(user.getId())
                 .email(user.getEmail())
                 .roles(user.getRoles().stream().map(Role::name).collect(Collectors.toSet()))
                 .build();

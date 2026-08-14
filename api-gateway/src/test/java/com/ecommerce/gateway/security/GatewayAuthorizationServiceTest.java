@@ -39,11 +39,20 @@ class GatewayAuthorizationServiceTest {
 
     @Test
     void isAuthorizedForUserResource_MatchesCartAndOrderPaths() {
-        assertTrue(authorizationService.isAuthorizedForUserResource("/api/carts/42", "42"));
-        assertFalse(authorizationService.isAuthorizedForUserResource("/api/carts/42", "99"));
-        assertTrue(authorizationService.isAuthorizedForUserResource("/api/orders/42", "42"));
-        assertTrue(authorizationService.isAuthorizedForUserResource("/api/orders/user/42", "42"));
-        assertTrue(authorizationService.isAuthorizedForUserResource("/api/payments/1", "42"));
+        // Cart access - GET/PUT should verify user ownership
+        assertTrue(authorizationService.isAuthorizedForUserResource("/api/carts/42", "42", HttpMethod.GET));
+        assertFalse(authorizationService.isAuthorizedForUserResource("/api/carts/42", "99", HttpMethod.GET));
+        
+        // Create order - POST should verify userId matches authenticated user
+        assertTrue(authorizationService.isAuthorizedForUserResource("/api/orders/42", "42", HttpMethod.POST));
+        assertFalse(authorizationService.isAuthorizedForUserResource("/api/orders/42", "99", HttpMethod.POST));
+        
+        // Get order by ID - GET should NOT extract userId, should always allow (order ownership handled by service)
+        assertTrue(authorizationService.isAuthorizedForUserResource("/api/orders/5", "42", HttpMethod.GET));
+        
+        // Get user's orders - GET should verify userId matches
+        assertTrue(authorizationService.isAuthorizedForUserResource("/api/orders/user/42", "42", HttpMethod.GET));
+        assertFalse(authorizationService.isAuthorizedForUserResource("/api/orders/user/42", "99", HttpMethod.GET));
     }
 
     @Test

@@ -1,9 +1,16 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
 
   ## ---- Infrastructure ----
 
   postgres:
     image: postgres:16-alpine
+    logging: *default-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -22,6 +29,7 @@ services:
 
   mongodb:
     image: mongo:7
+    logging: *default-logging
     ports:
       - "27017:27017"
     volumes:
@@ -36,6 +44,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    logging: *default-logging
     ports:
       - "6379:6379"
     networks:
@@ -48,6 +57,7 @@ services:
 
   kafka:
     image: apache/kafka:3.7.0
+    logging: *default-logging
     ports:
       - "9092:9092"
     environment:
@@ -79,6 +89,7 @@ services:
     build:
       context: .
       dockerfile: discovery-server/Dockerfile
+    logging: *default-logging
     ports:
       - "8761:8761"
     networks:
@@ -93,6 +104,7 @@ services:
     build:
       context: .
       dockerfile: config-server/Dockerfile
+    logging: *default-logging
     ports:
       - "8888:8888"
     depends_on:
@@ -107,6 +119,7 @@ services:
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
+    logging: *default-logging
     ports:
       - "8080:8080"
     depends_on:
@@ -124,6 +137,7 @@ services:
     build:
       context: .
       dockerfile: user-service/Dockerfile
+    logging: *default-logging
     ports:
       - "8081:8081"
     depends_on:
@@ -145,6 +159,7 @@ services:
     build:
       context: .
       dockerfile: product-service/Dockerfile
+    logging: *default-logging
     ports:
       - "8082:8082"
     depends_on:
@@ -165,6 +180,7 @@ services:
     build:
       context: .
       dockerfile: cart-service/Dockerfile
+    logging: *default-logging
     ports:
       - "8083:8083"
     depends_on:
@@ -182,6 +198,7 @@ services:
     build:
       context: .
       dockerfile: order-service/Dockerfile
+    logging: *default-logging
     ports:
       - "8084:8084"
     depends_on:
@@ -204,6 +221,7 @@ services:
     build:
       context: .
       dockerfile: payment-service/Dockerfile
+    logging: *default-logging
     ports:
       - "8085:8085"
     depends_on:
@@ -226,6 +244,7 @@ services:
     build:
       context: .
       dockerfile: notification-service/Dockerfile
+    logging: *default-logging
     ports:
       - "8086:8086"
     depends_on:

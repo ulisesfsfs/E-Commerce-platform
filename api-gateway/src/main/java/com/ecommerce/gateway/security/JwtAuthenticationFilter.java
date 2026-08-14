@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             return forbidden(exchange);
         }
 
-        if (!authorizationService.isAuthorizedForUserResource(path, userId)) {
+        if (!authorizationService.isAuthorizedForUserResource(path, userId, method)) {
             return forbidden(exchange);
         }
 

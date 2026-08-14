@@ -54,20 +54,24 @@ public class GatewayAuthorizationService {
                 .anyMatch(role -> role.equals(requiredRole));
     }
 
-    public boolean isAuthorizedForUserResource(String path, String authenticatedUserId) {
-        String pathUserId = extractUserIdFromPath(path);
+    public boolean isAuthorizedForUserResource(String path, String authenticatedUserId, HttpMethod method) {
+        String pathUserId = extractUserIdFromPath(path, method);
         return pathUserId == null || pathUserId.equals(authenticatedUserId);
     }
 
-    private String extractUserIdFromPath(String path) {
+    private String extractUserIdFromPath(String path, HttpMethod method) {
         Matcher cartMatcher = CART_USER_PATTERN.matcher(path);
         if (cartMatcher.matches()) {
             return cartMatcher.group(1);
         }
 
-        Matcher orderCreateMatcher = ORDER_CREATE_PATTERN.matcher(path);
-        if (orderCreateMatcher.matches()) {
-            return orderCreateMatcher.group(1);
+        // ORDER_CREATE_PATTERN should only apply to POST requests (creating an order with userId)
+        // GET requests to /api/orders/{orderId} should not extract userId
+        if (HttpMethod.POST.equals(method)) {
+            Matcher orderCreateMatcher = ORDER_CREATE_PATTERN.matcher(path);
+            if (orderCreateMatcher.matches()) {
+                return orderCreateMatcher.group(1);
+            }
         }
 
         Matcher orderUserListMatcher = ORDER_USER_LIST_PATTERN.matcher(path);

@@ -1,0 +1,179 @@
+.title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.sub {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.orderList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.orderCard {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.orderCard:hover {
+  border-color: var(--color-border-hover);
+}
+
+.orderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.orderId {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.orderDate {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.orderItemsCount {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
+.orderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.orderAmount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+/* Detail page */
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.itemMeta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.itemPrice {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summaryMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.metaBlock h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.summaryTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-4) 0;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.totalAmount {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .orderCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .orderRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}

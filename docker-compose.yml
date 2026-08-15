@@ -257,6 +257,17 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME:-noreply@ecommerce.com}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    logging: *default-logging
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
     networks:
       - ecommerce-net
 

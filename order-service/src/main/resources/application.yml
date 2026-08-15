@@ -25,12 +25,19 @@ spring:
       group-id: order-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "*"
+        spring.json.type.mapping: "com.ecommerce.product.event.StockReservationFailedEvent:com.ecommerce.order.event.StockReservationFailedEvent,com.ecommerce.payment.event.PaymentProcessedEvent:com.ecommerce.order.event.PaymentProcessedEvent"
+
 
 eureka:
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
   client:
+    registry-fetch-interval-seconds: 3
     service-url:
       defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
 

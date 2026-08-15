@@ -72,7 +72,7 @@ class OrderServiceImplTest {
             return o;
         });
 
-        OrderResponse response = orderService.createOrder(userId, request);
+        OrderResponse response = orderService.createOrder(userId, request, userId, null);
 
         assertNotNull(response);
         assertEquals(100L, response.getId());
@@ -91,7 +91,7 @@ class OrderServiceImplTest {
         when(cartClient.getCart("user1")).thenReturn(CartClientResponse.builder().items(List.of()).build());
 
         assertThrows(ResponseStatusException.class,
-                () -> orderService.createOrder("user1", new CreateOrderRequest("Main St 123")));
+            () -> orderService.createOrder("user1", new CreateOrderRequest("Main St 123"), "user1", null));
 
         verify(orderKafkaProducer, never()).sendOrderCreatedEvent(any());
         verify(orderRepository, never()).save(any());

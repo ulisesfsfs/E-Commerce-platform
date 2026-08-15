@@ -1,0 +1,111 @@
+.hero {
+  text-align: center;
+  padding: var(--space-8) 0 var(--space-6);
+}
+
+.heroTitle {
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.heroSub {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.searchWrap {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 16px 12px 40px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.searchInput::placeholder { color: var(--text-muted); }
+.searchInput:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-dim);
+}
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+}
+
+.catBtn {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.825rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+.catBtn:hover {
+  border-color: var(--color-border-hover);
+  color: var(--text-primary);
+}
+.catActive {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-6);
+}
+
+.skeleton {
+  aspect-ratio: 3/4;
+  border-radius: var(--radius-md);
+  background: #e2e8f0;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-10);
+}
+
+.pageInfo {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}

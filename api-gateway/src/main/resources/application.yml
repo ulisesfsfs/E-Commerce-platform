@@ -14,32 +14,32 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/users/**
+            - Path=/api/users,/api/users/**
 
         - id: product-service
           uri: lb://product-service
           predicates:
-            - Path=/api/products/**
+            - Path=/api/products,/api/products/**
 
         - id: cart-service
           uri: lb://cart-service
           predicates:
-            - Path=/api/carts/**
+            - Path=/api/carts,/api/carts/**
 
         - id: order-service
           uri: lb://order-service
           predicates:
-            - Path=/api/orders/**
+            - Path=/api/orders,/api/orders/**
 
         - id: payment-service
           uri: lb://payment-service
           predicates:
-            - Path=/api/payments/**
+            - Path=/api/payments,/api/payments/**
 
         - id: notification-service
           uri: lb://notification-service
           predicates:
-            - Path=/api/notifications/**
+            - Path=/api/notifications,/api/notifications/**
 
 jwt:
   secret: ${JWT_SECRET:defaultSecretKeyForDevelopmentMustBeLongEnoughAndSecure}
@@ -50,12 +50,16 @@ gateway:
       - /api/users/auth/**
       - /actuator/**
     public-get-paths:
+      - /api/products
       - /api/products/**
 
 eureka:
   client:
+    registry-fetch-interval-seconds: 3
     service-url:
       defaultZone: http://localhost:8761/eureka/
+  instance:
+    lease-renewal-interval-in-seconds: 5
 
 logging:
   level:

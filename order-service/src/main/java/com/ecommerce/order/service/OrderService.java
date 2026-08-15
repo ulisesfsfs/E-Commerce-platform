@@ -18,4 +18,9 @@ public interface OrderService {
 
     OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus,
                                     String requesterId, String roles);
+
+    // Backwards-compatible overload for internal callers (e.g., Kafka consumers)
+    default OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        return updateOrderStatus(orderId, newStatus, null, null);
+    }
 }

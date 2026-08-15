@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 @Slf4j
 @Service
@@ -36,7 +37,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse createOrder(String userId, CreateOrderRequest request) {
+    public OrderResponse createOrder(String userId, CreateOrderRequest request, String requesterId, String roles) {
+        validateOwnerOrAdmin(userId, requesterId, roles);
+
         // 1. Fetch user's cart from cart-service
         CartClientResponse cart = fetchCartOrThrow(userId);
 
@@ -78,14 +81,17 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public OrderResponse getOrderById(Long orderId) {
+    public OrderResponse getOrderById(Long orderId, String requesterId, String roles) {
         Order order = getOrderOrThrow(orderId);
+
+        validateOwnerOrAdmin(order.getUserId(), requesterId, roles);
         return toResponse(order);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<OrderResponse> getUserOrders(String userId, int page, int size) {
+    public PagedResponse<OrderResponse> getUserOrders(String userId, int page, int size, String requesterId, String roles) {
+        validateOwnerOrAdmin(userId, requesterId, roles);
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Order> ordersPage = orderRepository.findByUserId(userId, pageable);
         return toPagedResponse(ordersPage);
@@ -93,8 +99,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus, String requesterId, String roles) {
         Order order = getOrderOrThrow(orderId);
+
+        // allow internal/system callers when both requesterId and roles are null
+        if (requesterId != null || roles != null) {
+            // Only admin can update order status when called from external users
+            if (!isAdmin(roles)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can update order status");
+            }
+        }
 
         // If the order is cancelled, publish OrderCancelledEvent to Kafka so product-service restores stock asynchronously
         if (newStatus == OrderStatus.CANCELLED && order.getStatus() != OrderStatus.CANCELLED) {
@@ -131,7 +145,6 @@ public class OrderServiceImpl implements OrderService {
         }
         return cart;
     }
-
 
 
     private Order buildOrder(String userId, String shippingAddress, CartClientResponse cart) {
@@ -204,5 +217,28 @@ public class OrderServiceImpl implements OrderService {
                 .totalPages(page.getTotalPages())
                 .last(page.isLast())
                 .build();
+    }
+
+
+    //Other helpers//
+
+    private void validateOwnerOrAdmin(String resourceOwnerId, String requesterId, String roles) {
+        if (isAdmin(roles)) {
+            return;
+        }
+        if (requesterId == null || !requesterId.equals(resourceOwnerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+    }
+
+
+    private boolean isAdmin(String rolesHeader) {
+        if (rolesHeader == null || rolesHeader.isBlank()) {
+            return false;
+        }
+        return Arrays.stream(rolesHeader.split(","))
+                .map(String::trim)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
     }
 }

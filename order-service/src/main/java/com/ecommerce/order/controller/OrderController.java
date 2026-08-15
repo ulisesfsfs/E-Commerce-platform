@@ -33,7 +33,7 @@ public class OrderController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(orderService.createOrder(userId, request));
+                .body(orderService.createOrder(userId, request, requesterId, rolesHeader));
     }
 
     @GetMapping("/{orderId}")
@@ -42,7 +42,7 @@ public class OrderController {
             @RequestHeader(value = "X-User-Id", required = false) String requesterId,
             @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
 
-        OrderResponse response = orderService.getOrderById(orderId);
+        OrderResponse response = orderService.getOrderById(orderId, requesterId, rolesHeader);
 
         if (!isAdmin(rolesHeader) && (requesterId == null || !requesterId.equals(response.getUserId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
@@ -63,14 +63,16 @@ public class OrderController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
-        return ResponseEntity.ok(orderService.getUserOrders(userId, page, size));
+        return ResponseEntity.ok(orderService.getUserOrders(userId, page, size, requesterId, rolesHeader));
     }
 
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable Long orderId,
-            @RequestParam OrderStatus status) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
+            @RequestParam OrderStatus status,
+            @RequestHeader(value = "X-User-Id", required = false) String requesterId,
+            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
+        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status, requesterId, rolesHeader));
     }
 
     private boolean isAdmin(String rolesHeader) {

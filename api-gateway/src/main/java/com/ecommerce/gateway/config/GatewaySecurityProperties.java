@@ -19,6 +19,7 @@ public class GatewaySecurityProperties {
     );
 
     private List<String> publicGetPaths = List.of(
+            "/api/products",
             "/api/products/**"
     );
 }

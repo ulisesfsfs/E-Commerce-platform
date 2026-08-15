@@ -21,7 +21,8 @@ public class NotificationKafkaConsumer {
                 event.getOrderId(), event.getStatus());
 
         String recipientEmail = (event.getUserId() != null && event.getUserId().contains("@"))
-                ? event.getUserId() : "user_" + event.getOrderId() + "@example.com";
+                ? event.getUserId()
+                : "user_" + event.getOrderId() + "@example.com";
 
         if ("SUCCESS".equalsIgnoreCase(event.getStatus())) {
             emailService.sendPaymentSuccessNotification(recipientEmail, event);

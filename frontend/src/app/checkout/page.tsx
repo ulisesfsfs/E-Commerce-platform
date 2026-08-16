@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
-import { ordersApi, paymentsApi } from '@/lib/api';
+import { ordersApi, paymentsApi, cartApi } from '@/lib/api';
 import Link from 'next/link';
 import styles from './page.module.css';
 
@@ -86,7 +86,12 @@ export default function CheckoutPage() {
         idempotencyKey,
       });
 
-      // Refresh cart state locally
+      // 3. Clear cart backend & refresh local state
+      try {
+        await cartApi.clear(user.userId);
+      } catch (cartErr) {
+        console.warn('Cart clear warning:', cartErr);
+      }
       await refresh();
 
       // Redirect to Order Detail Page

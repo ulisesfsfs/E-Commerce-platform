@@ -22,7 +22,7 @@ services:
     networks:
       - ecommerce-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -37,7 +37,7 @@ services:
     networks:
       - ecommerce-net
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,7 +50,7 @@ services:
     networks:
       - ecommerce-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -78,7 +78,7 @@ services:
     networks:
       - ecommerce-net
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1" ]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -95,7 +95,7 @@ services:
     networks:
       - ecommerce-net
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8761/actuator/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -128,6 +128,7 @@ services:
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-defaultSecretKeyForDevelopmentMustBeLongEnoughAndSecure}
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
     networks:
       - ecommerce-net
 
@@ -152,6 +153,7 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-defaultSecretKeyForDevelopmentMustBeLongEnoughAndSecure}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
     networks:
       - ecommerce-net
 
@@ -173,6 +175,7 @@ services:
       MONGODB_URI: mongodb://mongodb:27017/${MONGO_INITDB_DATABASE:-product_db}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
     networks:
       - ecommerce-net
 
@@ -191,6 +194,7 @@ services:
     environment:
       SPRING_DATA_REDIS_HOST: redis
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
     networks:
       - ecommerce-net
 
@@ -214,6 +218,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
     networks:
       - ecommerce-net
 
@@ -237,6 +242,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
     networks:
       - ecommerce-net
 
@@ -254,9 +260,11 @@ services:
         condition: service_healthy
     environment:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
       MAIL_USERNAME: ${MAIL_USERNAME:-noreply@ecommerce.com}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
   frontend:
     build:
       context: ./frontend
@@ -268,6 +276,36 @@ services:
       - api-gateway
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8080
+    networks:
+      - ecommerce-net
+
+  # Observability
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - ecommerce-net
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - ecommerce-net
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    depends_on:
+      - prometheus
     networks:
       - ecommerce-net
 

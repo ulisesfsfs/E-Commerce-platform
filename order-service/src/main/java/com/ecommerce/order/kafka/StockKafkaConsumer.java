@@ -8,6 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.annotation.DltHandler;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.kafka.retrytopic.DltStrategy;
 
 @Slf4j
 @Component
@@ -18,10 +22,13 @@ public class StockKafkaConsumer {
 
     /**
      * Listens for StockReservationFailedEvent.
-     * When product-service cannot reserve stock (insufficient stock or inactive product),
-     * this consumer automatically cancels the order to close the Saga compensation loop.
+     * When product-service cannot reserve stock (insufficient stock or inactive
+     * product),
+     * this consumer automatically cancels the order to close the Saga compensation
+     * loop.
      */
     @Transactional
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 2000, multiplier = 2), dltStrategy = DltStrategy.FAIL_ON_ERROR)
     @KafkaListener(topics = "stock-events", groupId = "order-group")
     public void consumeStockReservationFailed(StockReservationFailedEvent event) {
         log.warn("OrderService received StockReservationFailedEvent: orderId={}, productId={}, reason={}",
@@ -39,4 +46,11 @@ public class StockKafkaConsumer {
             }
         }, () -> log.error("StockReservationFailedEvent received for unknown orderId={}", event.getOrderId()));
     }
+
+    @DltHandler
+    public void handleDltStockEvent(StockReservationFailedEvent event) {
+        log.error("DLT (OrderService): Error procesando cancelación por stock tras 3 intentos para orderId={}",
+                event.getOrderId());
+    }
+
 }

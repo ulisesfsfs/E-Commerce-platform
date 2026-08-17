@@ -1,5 +1,11 @@
 package com.ecommerce.notification.kafka;
 
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.annotation.DltHandler;
+import org.springframework.retry.annotation.Backoff;
+
+import org.springframework.kafka.retrytopic.DltStrategy;
+
 import com.ecommerce.notification.event.PaymentProcessedEvent;
 import com.ecommerce.notification.event.StockReservationFailedEvent;
 import com.ecommerce.notification.service.EmailService;
@@ -15,6 +21,7 @@ public class NotificationKafkaConsumer {
 
     private final EmailService emailService;
 
+    @RetryableTopic(attempts = "3", backoff = @Backoff(delay = 2000, multiplier = 2.0), dltStrategy = DltStrategy.FAIL_ON_ERROR)
     @KafkaListener(topics = "payment-events", groupId = "notification-group")
     public void consumePaymentProcessed(PaymentProcessedEvent event) {
         log.info("NotificationService received PaymentProcessedEvent for orderId={}, status={}",
@@ -37,5 +44,12 @@ public class NotificationKafkaConsumer {
 
         String recipientEmail = "customer_order_" + event.getOrderId() + "@example.com";
         emailService.sendStockFailureNotification(recipientEmail, event);
+
     }
+
+    @DltHandler
+    public void handleDltPaymentProcessed(PaymentProcessedEvent event) {
+        log.error("Failed to process payment_events after retries for orderId={}", event.getOrderId());
+    }
+
 }

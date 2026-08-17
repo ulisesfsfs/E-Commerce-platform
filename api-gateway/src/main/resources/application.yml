@@ -25,11 +25,21 @@ spring:
           uri: lb://cart-service
           predicates:
             - Path=/api/carts,/api/carts/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: cartServiceCircuitBreaker
+                fallbackUri: forward:/fallback/cart-service
 
         - id: order-service
           uri: lb://order-service
           predicates:
             - Path=/api/orders,/api/orders/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: orderServiceCircuitBreaker
+                fallbackUri: forward:/fallback/default
 
         - id: payment-service
           uri: lb://payment-service
@@ -49,6 +59,7 @@ gateway:
     public-paths:
       - /api/users/auth/**
       - /actuator/**
+      - /fallback/**
     public-get-paths:
       - /api/products
       - /api/products/**
@@ -78,3 +89,22 @@ logging:
     level: "%5p [${spring.application.name:-},%X{traceId:-},%X{spanId:-}]"
   level:
     org.springframework.cloud.gateway: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      cartServiceCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      orderServiceCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  timelimiter:
+    instances:
+      cartServiceCircuitBreaker:
+        timeout-duration: 3s
+      orderServiceCircuitBreaker:
+        timeout-duration: 3s
+

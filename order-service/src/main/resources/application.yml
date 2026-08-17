@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: order-service
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/order_db}
     username: ${POSTGRES_USER:postgres}
@@ -60,3 +64,18 @@ management:
 logging:
   pattern:
     level: "%5p [${spring.application.name:-},%X{traceId:-},%X{spanId:-}]"
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      cart-service:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5
+  timelimiter:
+    instances:
+      cart-service:
+        timeout-duration: 3s
+

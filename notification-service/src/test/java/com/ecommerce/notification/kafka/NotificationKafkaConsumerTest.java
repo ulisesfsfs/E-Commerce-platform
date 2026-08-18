@@ -22,7 +22,10 @@ class NotificationKafkaConsumerTest {
     private EmailService emailService;
 
     @InjectMocks
-    private NotificationKafkaConsumer kafkaConsumer;
+    private PaymentNotificationKafkaConsumer paymentConsumer;
+
+    @InjectMocks
+    private StockNotificationKafkaConsumer stockConsumer;
 
     @Test
     void consumePaymentProcessed_Success_TriggersSuccessEmail() {
@@ -36,7 +39,7 @@ class NotificationKafkaConsumerTest {
                 .transactionReference("tx_123")
                 .build();
 
-        kafkaConsumer.consumePaymentProcessed(event);
+        paymentConsumer.consumePaymentProcessed(event);
 
         verify(emailService).sendPaymentSuccessNotification(eq("john.doe@example.com"), any());
     }
@@ -53,7 +56,7 @@ class NotificationKafkaConsumerTest {
                 .transactionReference("tx_123")
                 .build();
 
-        kafkaConsumer.consumePaymentProcessed(event);
+        paymentConsumer.consumePaymentProcessed(event);
 
         verify(emailService).sendPaymentFailureNotification(eq("john.doe@example.com"), any());
     }
@@ -67,7 +70,7 @@ class NotificationKafkaConsumerTest {
                 .reason("Insufficient stock")
                 .build();
 
-        kafkaConsumer.consumeStockReservationFailed(event);
+        stockConsumer.consumeStockReservationFailed(event);
 
         verify(emailService).sendStockFailureNotification(any(), any());
     }

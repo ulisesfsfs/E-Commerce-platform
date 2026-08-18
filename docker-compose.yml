@@ -258,12 +258,16 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    networks:
+      - ecommerce-net
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
-      MAIL_USERNAME: ${MAIL_USERNAME:-noreply@ecommerce.com}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: 1025
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      MAIL_USERNAME: noreply@ecommerce.com
+      MAIL_PASSWORD: ""
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       ZIPKIN_URL: http://zipkin:9411/api/v2/spans
   frontend:
     build:
@@ -306,6 +310,15 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
     depends_on:
       - prometheus
+    networks:
+      - ecommerce-net
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     networks:
       - ecommerce-net
 

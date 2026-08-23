@@ -1,5 +1,6 @@
 package com.ecommerce.user.dto;
 
+import com.ecommerce.user.domain.Address;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,5 @@ public class UserProfileResponse {
     private String firstName;
     private String lastName;
     private Set<String> roles;
+    private Address address;
 }

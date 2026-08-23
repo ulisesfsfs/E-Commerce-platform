@@ -1,5 +1,6 @@
 package com.ecommerce.user.domain;
 
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -14,7 +15,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
-    @UniqueConstraint(columnNames = "email")
+        @UniqueConstraint(columnNames = "email")
 })
 @Getter
 @Setter
@@ -47,6 +48,9 @@ public class User {
     @Size(max = 50)
     @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
+
+    @Embedded
+    private Address address;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))

@@ -1,6 +1,7 @@
 package com.ecommerce.user.service;
 
 import com.ecommerce.user.config.JwtUtils;
+import com.ecommerce.user.domain.Address;
 import com.ecommerce.user.domain.Role;
 import com.ecommerce.user.domain.User;
 import com.ecommerce.user.dto.AuthResponse;
@@ -85,6 +86,14 @@ public class UserServiceImpl implements UserService {
         return mapToProfileResponse(user);
     }
 
+    @Override
+    public void changeAddress(String email, Address address) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setAddress(address);
+        userRepository.save(user);
+    }
+
     private UserProfileResponse mapToProfileResponse(User user) {
         return UserProfileResponse.builder()
                 .id(user.getId())
@@ -92,6 +101,7 @@ public class UserServiceImpl implements UserService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .roles(user.getRoles().stream().map(Role::name).collect(Collectors.toSet()))
+                .address(user.getAddress())
                 .build();
     }
 }

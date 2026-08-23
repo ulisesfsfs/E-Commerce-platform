@@ -44,8 +44,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error(msg || `HTTP ${res.status}`);
   }
 
-  if (res.status === 204) return undefined as T;
-  return res.json();
+  const text = await res.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text);
 }
 
 // ---- Auth ----
@@ -64,6 +65,34 @@ export const authApi = {
 
   profile: () =>
     request<{ userId: string; email: string; firstName: string; lastName: string }>('/api/users/profile'),
+};
+
+// ---- User Profile ----
+export interface Address {
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  address?: Address | null;
+}
+
+export const userApi = {
+  getProfile: () => request<UserProfile>('/api/users/profile'),
+
+  updateAddress: (body: Address) =>
+    request<void>('/api/users/profile/address', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
 };
 
 // ---- Products ----

@@ -29,6 +29,7 @@ export default function Navbar() {
         <nav className={styles.nav}>
           <Link href="/" className={styles.navLink}>Productos</Link>
           {user && <Link href="/orders" className={styles.navLink}>Mis Órdenes</Link>}
+          {user && <Link href="/profile" className={styles.navLink}>Mi Perfil</Link>}
         </nav>
 
         {/* Actions */}

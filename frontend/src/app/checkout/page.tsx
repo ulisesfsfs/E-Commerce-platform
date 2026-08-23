@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
-import { ordersApi, paymentsApi, cartApi } from '@/lib/api';
+import { ordersApi, paymentsApi, cartApi, userApi } from '@/lib/api';
 import Link from 'next/link';
 import styles from './page.module.css';
 
@@ -20,6 +20,7 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   const [shippingAddress, setShippingAddress] = useState('');
+  const [profileLoading, setProfileLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('CREDIT_CARD');
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
@@ -34,7 +35,24 @@ export default function CheckoutPage() {
     }
   }, [user, authLoading, router]);
 
-  if (authLoading || cartLoading) {
+  useEffect(() => {
+    if (user) {
+      userApi.getProfile()
+        .then(profile => {
+          if (profile.address && profile.address.address && !shippingAddress) {
+             const a = profile.address;
+             const formatted = [a.address, a.city, a.state, a.zipCode, a.country].filter(Boolean).join(', ');
+             setShippingAddress(formatted);
+          }
+        })
+        .catch(e => console.error("Error fetching profile for checkout:", e))
+        .finally(() => setProfileLoading(false));
+    } else if (!authLoading) {
+      setProfileLoading(false);
+    }
+  }, [user, authLoading]);
+
+  if (authLoading || cartLoading || profileLoading) {
     return (
       <div className="page-content flex-center" style={{ minHeight: '60vh' }}>
         <div className="spinner spinner-lg" />

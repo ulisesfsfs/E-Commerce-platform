@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartClient cartClient;
     private final com.ecommerce.order.kafka.OrderKafkaProducer orderKafkaProducer;
+    private final MeterRegistry meterRegistry;
 
     @Override
     @Transactional
@@ -54,6 +57,11 @@ public class OrderServiceImpl implements OrderService {
 
         // 5. Clear cart in cart-service
         clearCartQuietly(userId);
+
+        meterRegistry.counter("ecommerce.orders.created", "status", "success").increment();
+
+        meterRegistry.counter("ecommerce.orders.amount", "currency", "ARS")
+                .increment(order.getTotalAmount().doubleValue());
 
         return toResponse(savedOrder);
     }
@@ -90,7 +98,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<OrderResponse> getUserOrders(String userId, int page, int size, String requesterId, String roles) {
+    public PagedResponse<OrderResponse> getUserOrders(String userId, int page, int size, String requesterId,
+            String roles) {
         validateOwnerOrAdmin(userId, requesterId, roles);
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Order> ordersPage = orderRepository.findByUserId(userId, pageable);
@@ -110,7 +119,8 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        // If the order is cancelled, publish OrderCancelledEvent to Kafka so product-service restores stock asynchronously
+        // If the order is cancelled, publish OrderCancelledEvent to Kafka so
+        // product-service restores stock asynchronously
         if (newStatus == OrderStatus.CANCELLED && order.getStatus() != OrderStatus.CANCELLED) {
             publishOrderCancelledEvent(order);
         }
@@ -145,7 +155,6 @@ public class OrderServiceImpl implements OrderService {
         }
         return cart;
     }
-
 
     private Order buildOrder(String userId, String shippingAddress, CartClientResponse cart) {
         Order order = Order.builder()
@@ -219,8 +228,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-
-    //Other helpers//
+    // Other helpers//
 
     private void validateOwnerOrAdmin(String resourceOwnerId, String requesterId, String roles) {
         if (isAdmin(roles)) {
@@ -231,7 +239,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
     }
-
 
     private boolean isAdmin(String rolesHeader) {
         if (rolesHeader == null || rolesHeader.isBlank()) {

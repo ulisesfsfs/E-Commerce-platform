@@ -22,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceImplTest {
 
@@ -34,11 +37,12 @@ class PaymentServiceImplTest {
     @Mock
     private PaymentKafkaProducer kafkaProducer;
 
+    private MeterRegistry meterRegistry = new SimpleMeterRegistry();
     private PaymentService paymentService;
 
     @BeforeEach
     void setUp() {
-        paymentService = new PaymentServiceImpl(paymentRepository, paymentProvider, kafkaProducer);
+        paymentService = new PaymentServiceImpl(paymentRepository, paymentProvider, kafkaProducer, meterRegistry);
     }
 
     @Test

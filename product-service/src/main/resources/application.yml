@@ -40,7 +40,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,tracing
+        include: "*"
   tracing:
     sampling:
       probability: 1.0

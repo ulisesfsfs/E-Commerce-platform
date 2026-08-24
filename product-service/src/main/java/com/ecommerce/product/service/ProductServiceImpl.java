@@ -16,6 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
+
 import java.math.BigDecimal;
 
 @Service
@@ -23,6 +27,14 @@ import java.math.BigDecimal;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void initMetrics() {
+        Gauge.builder("ecommerce.products.low_stock", productRepository,
+                repo -> repo.countByStockLessThan(5))
+                .register(meterRegistry);
+    }
 
     @Override
     public ProductResponse create(CreateProductRequest request) {
@@ -95,14 +107,22 @@ public class ProductServiceImpl implements ProductService {
         Product product = getProductOrThrow(id);
 
         // Only update fields present in request (PATCH pattern)
-        if (request.getName() != null)        product.setName(request.getName());
-        if (request.getDescription() != null) product.setDescription(request.getDescription());
-        if (request.getPrice() != null)       product.setPrice(request.getPrice());
-        if (request.getCategory() != null)    product.setCategory(request.getCategory());
-        if (request.getStock() != null)       product.setStock(request.getStock());
-        if (request.getImageUrl() != null)    product.setImageUrl(request.getImageUrl());
-        if (request.getAttributes() != null)  product.setAttributes(request.getAttributes());
-        if (request.getActive() != null)      product.setActive(request.getActive());
+        if (request.getName() != null)
+            product.setName(request.getName());
+        if (request.getDescription() != null)
+            product.setDescription(request.getDescription());
+        if (request.getPrice() != null)
+            product.setPrice(request.getPrice());
+        if (request.getCategory() != null)
+            product.setCategory(request.getCategory());
+        if (request.getStock() != null)
+            product.setStock(request.getStock());
+        if (request.getImageUrl() != null)
+            product.setImageUrl(request.getImageUrl());
+        if (request.getAttributes() != null)
+            product.setAttributes(request.getAttributes());
+        if (request.getActive() != null)
+            product.setActive(request.getActive());
 
         return toResponse(productRepository.save(product));
     }
@@ -118,7 +138,7 @@ public class ProductServiceImpl implements ProductService {
         if (product.getStock() < quantity) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Insufficient stock for product '" + product.getName()
-                    + "'. Requested: " + quantity + ", Available: " + product.getStock());
+                            + "'. Requested: " + quantity + ", Available: " + product.getStock());
         }
 
         product.setStock(product.getStock() - quantity);

@@ -17,6 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,11 +41,13 @@ class OrderServiceImplTest {
     @Mock
     private OrderKafkaProducer orderKafkaProducer;
 
+    private MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderServiceImpl(orderRepository, cartClient, orderKafkaProducer);
+        orderService = new OrderServiceImpl(orderRepository, cartClient, orderKafkaProducer, meterRegistry);
     }
 
     @Test
@@ -91,7 +96,7 @@ class OrderServiceImplTest {
         when(cartClient.getCart("user1")).thenReturn(CartClientResponse.builder().items(List.of()).build());
 
         assertThrows(ResponseStatusException.class,
-            () -> orderService.createOrder("user1", new CreateOrderRequest("Main St 123"), "user1", null));
+                () -> orderService.createOrder("user1", new CreateOrderRequest("Main St 123"), "user1", null));
 
         verify(orderKafkaProducer, never()).sendOrderCreatedEvent(any());
         verify(orderRepository, never()).save(any());
@@ -127,5 +132,3 @@ class OrderServiceImplTest {
         verify(orderKafkaProducer).sendOrderCancelledEvent(any());
     }
 }
-
-

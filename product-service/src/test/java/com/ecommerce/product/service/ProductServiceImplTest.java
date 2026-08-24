@@ -24,17 +24,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
 
     @Mock
     private ProductRepository productRepository;
 
+    private MeterRegistry meterRegistry = new SimpleMeterRegistry();
     private ProductService productService;
 
     @BeforeEach
     void setUp() {
-        productService = new ProductServiceImpl(productRepository);
+        productService = new ProductServiceImpl(productRepository, meterRegistry);
     }
 
     private Product buildSampleProduct() {

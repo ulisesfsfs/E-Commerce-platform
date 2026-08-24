@@ -34,4 +34,6 @@ public interface ProductRepository extends MongoRepository<Product, String> {
             BigDecimal minPrice,
             BigDecimal maxPrice,
             Pageable pageable);
+    // Count products with low stock for metrics
+    long countByStockLessThan(int stock);
 }

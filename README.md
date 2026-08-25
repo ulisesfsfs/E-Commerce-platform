@@ -51,11 +51,11 @@ The platform features a production-ready observability stack built upon the thre
 
 | Grafana — Business & System Metrics | Grafana Loki — Centralized Logs |
 | :---: | :---: |
-| ![Grafana Dashboard](./docs/images/grafana-dashboard.png) | ![Loki Logs](./docs/images/loki-logs.png) |
+| ![Grafana Dashboard](./docs/images/grafana-metrics.png) | ![Loki Logs](./docs/images/loki-logs.png) |
 
 | Zipkin — Distributed Tracing |
 | :---: |
-| ![Zipkin Tracing](./docs/images/zipkin-tracing.png) |
+| ![Zipkin Tracing](./docs/images/zipkin-trace.png) |
 
 ### Local Monitoring Endpoints
 

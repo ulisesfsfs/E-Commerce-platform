@@ -14,8 +14,12 @@ const EMPTY_ADDRESS: Address = {
   country: '',
 };
 
+import { useToast } from '@/context/ToastContext';
+import { ProfileSkeleton } from '@/components/skeletons/ProfileSkeleton';
+
 export default function ProfilePage() {
   const { token, loading, logout } = useAuth();
+  const { addToast } = useToast();
   const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -65,12 +69,11 @@ export default function ProfilePage() {
       await userApi.updateAddress(form);
       setSuccess(true);
       setProfile((prev) => prev ? { ...prev, address: form } : null);
+      addToast('¡Dirección guardada con éxito!', 'success');
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError(String(e));
-      }
+      const errMsg = e instanceof Error ? e.message : String(e);
+      setError(errMsg);
+      addToast(errMsg, 'error');
     } finally {
       setSaving(false);
     }
@@ -78,21 +81,12 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     logout();
+    addToast('Sesión cerrada', 'info');
     router.push('/login');
   };
 
   if (loading || loadingProfile) {
-    return (
-      <div className={styles.pageWrapper}>
-        <div className={styles.loadingState}>
-          <div className={styles.skeletonAvatar} />
-          <div className={styles.skeletonLines}>
-            <div className={styles.skeletonLine} style={{ width: '180px' }} />
-            <div className={styles.skeletonLine} style={{ width: '130px', height: '14px' }} />
-          </div>
-        </div>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   const initials = `${profile?.firstName?.[0] ?? ''}${profile?.lastName?.[0] ?? ''}`.toUpperCase() || '?';

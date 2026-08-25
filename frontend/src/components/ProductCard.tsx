@@ -7,11 +7,14 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import styles from './ProductCard.module.css';
 
+import { useToast } from '@/context/ToastContext';
+
 interface Props { product: Product; }
 
 export default function ProductCard({ product }: Props) {
   const { addItem } = useCart();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
 
@@ -27,6 +30,9 @@ export default function ProductCard({ product }: Props) {
         quantity: 1,
         imageUrl: product.imageUrl,
       });
+      addToast(`"${product.name}" agregado al carrito 🛒`, 'success');
+    } catch (err: any) {
+      addToast('Error al agregar el producto al carrito', 'error');
     } finally {
       setAdding(false);
     }

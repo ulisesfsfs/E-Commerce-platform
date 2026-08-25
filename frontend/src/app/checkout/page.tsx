@@ -14,9 +14,13 @@ const PAYMENT_METHODS = [
   { id: 'BANK_TRANSFER', label: 'Transferencia Bancaria', icon: '💸' },
 ];
 
+import { useToast } from '@/context/ToastContext';
+import { CheckoutSkeleton } from '@/components/skeletons/CheckoutSkeleton';
+
 export default function CheckoutPage() {
   const { user, loading: authLoading } = useAuth();
   const { cart, loading: cartLoading, refresh } = useCart();
+  const { addToast } = useToast();
   const router = useRouter();
 
   const [shippingAddress, setShippingAddress] = useState('');
@@ -53,11 +57,7 @@ export default function CheckoutPage() {
   }, [user, authLoading]);
 
   if (authLoading || cartLoading || profileLoading) {
-    return (
-      <div className="page-content flex-center" style={{ minHeight: '60vh' }}>
-        <div className="spinner spinner-lg" />
-      </div>
-    );
+    return <CheckoutSkeleton />;
   }
 
   if (!cart || cart.items.length === 0) {
@@ -81,12 +81,15 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (!user) return;
     if (!shippingAddress.trim()) {
-      setError('Por favor ingresá la dirección de envío.');
+      const msg = 'Por favor ingresá la dirección de envío.';
+      setError(msg);
+      addToast(msg, 'warning');
       return;
     }
 
     setProcessing(true);
     setError('');
+    addToast('Procesando tu pago de forma segura...', 'info');
 
     try {
       // 1. Crear Orden en Order Service
@@ -112,11 +115,15 @@ export default function CheckoutPage() {
       }
       await refresh();
 
+      addToast('¡Compra realizada con éxito! 🛍️', 'success');
+
       // Redirect to Order Detail Page
       router.push(`/orders/${order.id}?success=true`);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Ocurrió un error al procesar la orden o el pago.');
+      const errMsg = err.message || 'Ocurrió un error al procesar la orden o el pago.';
+      setError(errMsg);
+      addToast(errMsg, 'error');
       setProcessing(false);
     }
   };

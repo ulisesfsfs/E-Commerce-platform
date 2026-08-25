@@ -1,17 +1,9 @@
-# 🛒 E-Commerce Platform
+#  E-Commerce Platform
 
 Scalable e-commerce platform built with **Spring Boot Microservices** and **Spring Cloud**.
 
-## 📚 Table of Contents
 
-- [Architecture](#architecture)
-- [Microservices](#microservices)
-- [Infrastructure](#infrastructure)
-- [Event-Driven Communication with Kafka](#event-driven-communication-with-kafka)
-- [Getting Started](#getting-started)
-- [Technology Stack](#technology-stack)
-
-## 🏗️ Architecture
+## Architecture
 
 This project implements a **microservices architecture** with the following components:
 
@@ -22,7 +14,7 @@ This project implements a **microservices architecture** with the following comp
 - **Event Bus**: Apache Kafka for asynchronous communication
 - **Databases**: PostgreSQL (relational), MongoDB (document), Redis (caching)
 
-## 🔧 Microservices
+## Microservices
 
 | **API Gateway** 
 | **Discovery Server** 
@@ -34,7 +26,7 @@ This project implements a **microservices architecture** with the following comp
 | **Payment Service** 
 | **Notification Service** 
 
-## 🐳 Infrastructure
+##  Infrastructure
 
 **Docker Services** (defined in `docker-compose.yml`):
 
@@ -42,8 +34,40 @@ This project implements a **microservices architecture** with the following comp
 - **MongoDB**: Document database for flexible schemas 
 - **Redis**: In-memory cache for performance optimization 
 - **Kafka**: Message broker for event-driven architecture
+##  Observability & Monitoring
 
-## 🎵 Event-Driven Communication with Kafka
+The platform features a production-ready observability stack built upon the three core pillars of observability:
+
+- **Metrics**: [Micrometer](https://micrometer.io/) + [Prometheus](https://prometheus.io/)
+  - Full exposure of Spring Boot Actuator management endpoints.
+  - Custom business metrics (`ecommerce_orders_total`, `ecommerce_payments_processed_total`, `ecommerce_products_low_stock`, `ecommerce_orders_amount_total`).
+- **Centralized Logging**: [Grafana Loki](https://grafana.com/oss/loki/) + [Promtail](https://grafana.com/docs/loki/latest/send-data/promtail/)
+  - Real-time log aggregation and querying across all microservice containers.
+- **Distributed Tracing**: [Micrometer Tracing](https://micrometer.io/) + [Zipkin](https://zipkin.io/)
+  - Automatic `traceId` and `spanId` propagation for end-to-end request correlation across the API Gateway and microservices.
+- **Visualization**: [Grafana](https://grafana.com/)
+
+###  Dashboards & Visualizations
+
+| Grafana — Business & System Metrics | Grafana Loki — Centralized Logs |
+| :---: | :---: |
+| ![Grafana Dashboard](./docs/images/grafana-dashboard.png) | ![Loki Logs](./docs/images/loki-logs.png) |
+
+| Zipkin — Distributed Tracing |
+| :---: |
+| ![Zipkin Tracing](./docs/images/zipkin-tracing.png) |
+
+### Local Monitoring Endpoints
+
+| Service | URL | Credentials |
+| :--- | :--- | :--- |
+| **Grafana** | `http://localhost:3002` | `admin` / `admin` |
+| **Prometheus** | `http://localhost:9090` | — |
+| **Zipkin UI** | `http://localhost:9411` | — |
+| **Mailpit (SMTP)** | `http://localhost:8025` | — |
+
+
+##  Event-Driven Communication with Kafka
 
 The platform uses **Apache Kafka** for asynchronous communication between services:
 ### Kafka Topics & Event Flow
@@ -91,7 +115,7 @@ flowchart LR
     T_Cancel --> ProductConsumer
 ```
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -135,7 +159,7 @@ flowchart LR
    - Eureka Dashboard: http://localhost:8761
    - Kafka: localhost:9092
 
-## 📦 Technology Stack
+##  Technology Stack
 
 ### Core Framework
 - **Spring Boot 3.4.1** - Application framework
@@ -159,7 +183,7 @@ flowchart LR
 - **Maven** - Build management
 - **Docker** - Containerization
 
-## 📝 License
+##  License
 
 This project is licensed under the MIT License.
 

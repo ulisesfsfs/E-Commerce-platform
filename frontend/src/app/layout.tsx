@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
+import { ToastProvider } from '@/context/ToastContext';
 import Navbar from '@/components/Navbar';
 import CartDrawer from '@/components/CartDrawer';
 
@@ -17,9 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AuthProvider>
           <CartProvider>
-            <Navbar />
-            <CartDrawer />
-            <main>{children}</main>
+            <ToastProvider>
+              <Navbar />
+              <CartDrawer />
+              <main>{children}</main>
+            </ToastProvider>
           </CartProvider>
         </AuthProvider>
       </body>

@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
   cloud:
     gateway:
       discovery:
@@ -15,11 +19,25 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/users,/api/users/**
+          filters:
+          - name: RequestRateLimiter
+            args:
+              redis-rate-limiter.replenishRate: 5
+              redis-rate-limiter.burstCapacity: 10
+              redis-rate-limiter.requestedTokens: 1
+              key-resolver: "#{@userKeyResolver}"
 
         - id: product-service
           uri: lb://product-service
           predicates:
             - Path=/api/products,/api/products/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
 
         - id: cart-service
           uri: lb://cart-service
@@ -40,6 +58,12 @@ spring:
               args:
                 name: orderServiceCircuitBreaker
                 fallbackUri: forward:/fallback/default
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
 
         - id: payment-service
           uri: lb://payment-service

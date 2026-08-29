@@ -125,10 +125,13 @@ services:
     depends_on:
       discovery-server:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-defaultSecretKeyForDevelopmentMustBeLongEnoughAndSecure}
       ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+      REDIS_HOST: redis
     networks:
       - ecommerce-net
 

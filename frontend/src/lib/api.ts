@@ -103,6 +103,8 @@ export interface Product {
   price: number;
   stock: number;
   category: string;
+  sku?: string;
+  active?: boolean;
   imageUrl?: string;
 }
 
@@ -115,6 +117,16 @@ export interface PagedResponse<T> {
   last: boolean;
 }
 
+export interface ProductFilterParams {
+  search?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  page?: number;
+  size?: number;
+}
+
 export const productsApi = {
   list: (page = 0, size = 12, category?: string) => {
     const params = new URLSearchParams({ page: String(page), size: String(size) });
@@ -122,10 +134,32 @@ export const productsApi = {
     return request<PagedResponse<Product>>(`/api/products?${params}`);
   },
 
+  filter: (params: ProductFilterParams = {}) => {
+    const query = new URLSearchParams();
+    if (params.search?.trim()) query.set('search', params.search.trim());
+    if (params.category && params.category !== 'Todas') query.set('category', params.category);
+    if (params.minPrice !== undefined && params.minPrice !== null && !isNaN(params.minPrice)) {
+      query.set('minPrice', String(params.minPrice));
+    }
+    if (params.maxPrice !== undefined && params.maxPrice !== null && !isNaN(params.maxPrice)) {
+      query.set('maxPrice', String(params.maxPrice));
+    }
+    if (params.sortBy) query.set('sortBy', params.sortBy);
+    query.set('page', String(params.page || 0));
+    query.set('size', String(params.size || 12));
+    return request<PagedResponse<Product>>(`/api/products/filter?${query.toString()}`);
+  },
+
   get: (id: string) => request<Product>(`/api/products/${id}`),
 
   create: (body: Omit<Product, 'id'>) =>
     request<Product>('/api/products', { method: 'POST', body: JSON.stringify(body) }),
+
+  update: (id: string, body: Partial<Product>) =>
+    request<Product>(`/api/products/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  delete: (id: string) =>
+    request<void>(`/api/products/${id}`, { method: 'DELETE' }),
 };
 
 // ---- Cart ----

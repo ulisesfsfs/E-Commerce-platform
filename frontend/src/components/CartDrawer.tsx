@@ -1,12 +1,14 @@
 'use client';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useRouter } from 'next/navigation';
 import styles from './CartDrawer.module.css';
 
 export default function CartDrawer() {
   const { cart, isOpen, closeCart, updateQuantity, removeItem, loading } = useCart();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleCheckout = () => {
@@ -26,7 +28,7 @@ export default function CartDrawer() {
       {/* Drawer */}
       <aside className={`${styles.drawer} ${isOpen ? styles.open : ''}`} aria-label="Carrito de compras">
         <div className={styles.header}>
-          <h3>Carrito</h3>
+          <h3>{t('cart.title')}</h3>
           <button className={styles.closeBtn} onClick={closeCart} aria-label="Cerrar carrito">
             <CloseIcon />
           </button>
@@ -46,8 +48,7 @@ export default function CartDrawer() {
           ) : !cart || cart.items.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">🛒</div>
-              <h3>Tu carrito está vacío</h3>
-              <p>Explorá los productos y agregá algo.</p>
+              <h3>{t('cart.empty')}</h3>
             </div>
           ) : (
             <ul className={styles.itemList}>
@@ -93,7 +94,7 @@ export default function CartDrawer() {
               </div>
             </div>
             <button id="checkout-btn" className="btn btn-primary btn-full btn-lg" onClick={handleCheckout}>
-              Ir al checkout
+              {t('cart.checkout')}
             </button>
           </div>
         )}

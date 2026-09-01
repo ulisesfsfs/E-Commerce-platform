@@ -12,6 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,12 +25,14 @@ import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final MongoTemplate mongoTemplate;
     private final MeterRegistry meterRegistry;
 
     @PostConstruct
@@ -100,6 +106,44 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> result = productRepository
                 .findByCategoryAndPriceRange(category, minPrice, maxPrice, pageable);
         return toPagedResponse(result);
+    }
+
+    @Override
+    public PagedResponse<ProductResponse> filterProducts(
+            String search, Category category, BigDecimal minPrice, BigDecimal maxPrice, String sortBy, int page, int size) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("active").is(true));
+
+        if (search != null && !search.trim().isEmpty()) {
+            query.addCriteria(Criteria.where("name").regex(search.trim(), "i"));
+        }
+        if (category != null) {
+            query.addCriteria(Criteria.where("category").is(category));
+        }
+        if (minPrice != null || maxPrice != null) {
+            Criteria priceCriteria = Criteria.where("price");
+            if (minPrice != null) priceCriteria.gte(minPrice);
+            if (maxPrice != null) priceCriteria.lte(maxPrice);
+            query.addCriteria(priceCriteria);
+        }
+
+        long total = mongoTemplate.count(query, Product.class);
+
+        Sort sort = Sort.by("createdAt").descending();
+        if ("price_asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("price").ascending();
+        } else if ("price_desc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("price").descending();
+        } else if ("name_asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("name").ascending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        query.with(pageable);
+
+        List<Product> products = mongoTemplate.find(query, Product.class);
+        Page<Product> productPage = new PageImpl<>(products, pageable, total);
+        return toPagedResponse(productPage);
     }
 
     @Override

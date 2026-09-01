@@ -66,6 +66,20 @@
   box-shadow: var(--shadow-sm);
 }
 
+.lowStockBadge {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-3);
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  color: #d48806;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
 .body {
   display: flex;
   flex-direction: column;

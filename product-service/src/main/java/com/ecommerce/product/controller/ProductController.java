@@ -77,6 +77,20 @@ public class ProductController {
                 productService.findByCategoryAndPriceRange(category, min, max, page, size));
     }
 
+    // GET /api/products/filter?search=laptop&category=ELECTRONICS&minPrice=100&maxPrice=1000&sortBy=price_asc&page=0&size=12
+    @GetMapping("/filter")
+    public ResponseEntity<PagedResponse<ProductResponse>> filter(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Category category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false, defaultValue = "newest") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        return ResponseEntity.ok(
+                productService.filterProducts(search, category, minPrice, maxPrice, sortBy, page, size));
+    }
+
     // PATCH /api/products/{id}
     @PatchMapping("/{id}")
     public ResponseEntity<ProductResponse> update(

@@ -33,12 +33,15 @@ class ProductServiceImplTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
+
     private MeterRegistry meterRegistry = new SimpleMeterRegistry();
     private ProductService productService;
 
     @BeforeEach
     void setUp() {
-        productService = new ProductServiceImpl(productRepository, meterRegistry);
+        productService = new ProductServiceImpl(productRepository, mongoTemplate, meterRegistry);
     }
 
     private Product buildSampleProduct() {

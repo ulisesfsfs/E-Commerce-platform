@@ -7,6 +7,16 @@ interface User {
   email: string;
   firstName: string;
   lastName?: string;
+  roles: string[];
+}
+
+function parseRolesFromToken(token: string): string[] {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (Array.isArray(payload.roles)) return payload.roles;
+    if (typeof payload.roles === 'string') return payload.roles.split(',').map((r: string) => r.trim());
+  } catch {}
+  return ['ROLE_USER'];
 }
 
 interface AuthContextValue {
@@ -30,7 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const savedUser = localStorage.getItem('user');
     if (savedToken && savedUser) {
       setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      const parsedUser: User = JSON.parse(savedUser);
+      // Refresh roles from token if missing
+      parsedUser.roles = parseRolesFromToken(savedToken);
+      setUser(parsedUser);
     }
     setLoading(false);
   }, []);
@@ -38,7 +51,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const data = await authApi.login({ email, password });
     localStorage.setItem('token', data.token);
-    const u: User = { userId: String(data.userId), email: data.email, firstName: data.firstName || email.split('@')[0] };
+    const roles = parseRolesFromToken(data.token);
+    const u: User = {
+      userId: String(data.userId),
+      email: data.email,
+      firstName: data.firstName || email.split('@')[0],
+      roles,
+    };
     localStorage.setItem('user', JSON.stringify(u));
     setToken(data.token);
     setUser(u);
@@ -47,7 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (firstName: string, lastName: string, email: string, password: string) => {
     const data = await authApi.register({ firstName, lastName, email, password });
     localStorage.setItem('token', data.token);
-    const u: User = { userId: String(data.userId), email: data.email, firstName: data.firstName || firstName, lastName };
+    const roles = parseRolesFromToken(data.token);
+    const u: User = {
+      userId: String(data.userId),
+      email: data.email,
+      firstName: data.firstName || firstName,
+      lastName,
+      roles,
+    };
     localStorage.setItem('user', JSON.stringify(u));
     setToken(data.token);
     setUser(u);

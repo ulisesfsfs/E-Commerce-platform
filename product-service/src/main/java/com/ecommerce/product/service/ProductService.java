@@ -25,6 +25,9 @@ public interface ProductService {
     PagedResponse<ProductResponse> findByCategoryAndPriceRange(
             Category category, BigDecimal minPrice, BigDecimal maxPrice, int page, int size);
 
+    PagedResponse<ProductResponse> filterProducts(
+            String search, Category category, BigDecimal minPrice, BigDecimal maxPrice, String sortBy, int page, int size);
+
     ProductResponse update(String id, UpdateProductRequest request);
 
     /**

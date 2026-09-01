@@ -24,12 +24,18 @@
   gap: var(--space-2);
   flex-shrink: 0;
 }
-.logoIcon { font-size: 1.2rem; }
+.logoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+}
 .logoText {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-primary);
-  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .nav {

@@ -1,9 +1,19 @@
-#  E-Commerce Platform
+# NEXUS — Scalable Microservices E-Commerce Platform
 
-Scalable e-commerce platform built with **Spring Boot Microservices** and **Spring Cloud**.
+Scalable e-commerce platform built with **Spring Boot Microservices**, **Spring Cloud**, **Next.js 16**, and **Kafka**.
 
+---
 
-## Architecture
+## 🖥️ Web Frontend (NEXUS)
+
+![NEXUS Web Application Interface](./docs/images/nexus-frontend.png)
+
+- **Modern & Responsive UI**: Built with Next.js (App Router), React, and Vanilla CSS with zero external UI dependencies.
+- **Multi-Language (i18n)**: Instant runtime switching between English (`EN`) and Spanish (`ES`) with `localStorage` persistence.
+- **Admin Dashboard (`/admin`)**: Protected role-based portal (`ROLE_ADMIN`) for real-time inventory management, stock alerts, and product creation/editing.
+- **Server-Side Catalog Search & Filtering**: Multi-parameter search, category filters, price ranges, and dynamic sorting.
+
+---
 
 This project implements a **microservices architecture** with the following components:
 
